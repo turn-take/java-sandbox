@@ -7,6 +7,9 @@ public interface Foo {
 
     default void z() {}
 
+    // インターフェース内の変数は暗黙的にpublic final static
+    int a = 0;
+
     // インターフェース内のメンバークラスは暗黙的にstaticメンバークラスとなる
     class Innner{}
 }
