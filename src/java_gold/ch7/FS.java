@@ -47,6 +47,8 @@ public class FS {
         System.out.println(path.resolveSibling(path5));
         // 空白は親ディレクトリ
         System.out.println(path.resolveSibling(""));
+        // 呼び出し側が相対パスなら引数で渡したパスそのもの
+        System.out.println(path5.resolveSibling(path4));
 
         // 冗長性を正規化
         Path path6 = Paths.get("C:\\a\\.\\..\\a\\b\\..\\b\\c\\.");
