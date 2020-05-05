@@ -31,6 +31,8 @@ public class ForkJoinStudy {
         Thread.sleep(3000);
         // ForkJoinTaskのgetで結果取得
         System.out.println("Done:" + forkJoinTask.get());
+        // executeにRecursiveTaskを渡すことは出来る。
+        //forkJoinPool.execute(new MyTask());
     }
 }
 
