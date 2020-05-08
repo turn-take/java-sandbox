@@ -64,5 +64,10 @@ public class Lambda {
         // UnaryOperator<String> unaryOperator2 = s2 -> s1.concat(s2);
         s1 = "fuga";
 
+        BooleanSupplier booleanSupplier = () -> true;
+
+        // 引数二つのintを返すFunction
+        ToIntBiFunction<String, Integer> toIntBiFunction = (s,i) -> s.length() + i;
+
     }
 }

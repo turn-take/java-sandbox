@@ -1,6 +1,8 @@
 package java_gold.ch4;
 
 import java.util.Comparator;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -28,5 +30,14 @@ public class Reduction {
         Stream<String> stringStream2 = Stream.of("a", "b", "c");
         String result = stringStream2.collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
         //String result = stringStream2.collect(() -> new StringBuilder(), (sb, s) -> sb.append(s), (sb1, sb2) -> sb1.append(sb2)).toString();
+    }
+
+    void sample() {
+        BiFunction<String, Integer, String> biFunction = (s, i) -> s.concat(i.toString());
+        BinaryOperator<String> binaryOperator = (s1, s2) -> s1.concat(s2);
+
+        Stream<Integer> stream = Stream.of(1,2,3,4,5);
+
+        stream.reduce("hoge", biFunction, binaryOperator);
     }
 }
