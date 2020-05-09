@@ -1,5 +1,10 @@
 package java_gold.ch5;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
 public class Assertion {
     public static void main(String[] args) {
         int x = 1;
@@ -16,5 +21,15 @@ public class Assertion {
 
     boolean test() {
         return true;
+    }
+
+    void test2() {
+        // try-with-resource内でfinal宣言できる。
+        try (final BufferedReader br = new BufferedReader(new FileReader(""))) {
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
