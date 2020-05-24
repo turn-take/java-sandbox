@@ -24,16 +24,47 @@ public class Compare {
         Set<String> stringSet2 = new TreeSet<>(Comparator.comparingInt(String::length));
 
         System.out.println(stringSet);
+
+        // comparingの引数にComparableを返す関数
+        Set<Product> products = new TreeSet<>(Comparator.comparing(p -> p.getName()));
+
     }
 }
 
 class Product implements Comparator<Product> {
     private int id;
+
+    public InnerProduct getInnerProduct() {
+        return innerProduct;
+    }
+
+    private InnerProduct innerProduct;
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     private String name;
 
     public Product(int id, String name) {
         this.id = id;
         this.name = name;
+    }
+
+    public class InnerProduct {
+        private int innerInt;
+
+        public InnerProduct(int innerInt) {
+            this.innerInt = innerInt;
+        }
+
+        public int getInnerInt() {
+            return innerInt;
+        }
     }
 
     @Override

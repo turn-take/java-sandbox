@@ -20,6 +20,7 @@ public class Grouping {
 
         Stream<Sample> sampleStream = Stream.of(sample1,sample2,sample3,sample4,sample5,sample6,sample7,sample8);
         Map<String, List<Sample>> groupedMap = sampleStream.collect(Collectors.groupingBy(Sample::getKey));
+        System.out.println(groupedMap);
         groupedMap.forEach((k,l) -> {
             System.out.println("Group : " + k);
             l.forEach(v -> System.out.println(v.getValue()));

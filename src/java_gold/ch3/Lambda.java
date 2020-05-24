@@ -70,4 +70,10 @@ public class Lambda {
         ToIntBiFunction<String, Integer> toIntBiFunction = (s,i) -> s.length() + i;
 
     }
+
+    void nest() {
+         IntFunction<IntUnaryOperator> func = x -> {
+             return y -> x + y;
+         };
+    }
 }

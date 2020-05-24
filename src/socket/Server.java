@@ -16,7 +16,7 @@ public class Server implements Runnable {
         this.service = Executors.newFixedThreadPool(10);
     }
 
-    //@Override
+    @Override
     public void run() {
         System.out.println("サーバーを起動しました。");
         try (ServerSocket sc = new ServerSocket(PORT)){

@@ -16,15 +16,10 @@ public class EchoThread implements Runnable{
 
     public void run() {
         try (/**BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))**/
-             DataInputStream dis = new DataInputStream(socket.getInputStream())){
+             DataInputStream dis = new DataInputStream(socket.getInputStream());
+             BufferedReader br = new BufferedReader(new InputStreamReader(dis))){
 
-            // 入力をバイト配列に格納
-            byte[] b = new byte[1024];
-            dis.read(b);
-
-            // バイト配列をUTF-8文字列に変換
-            String result = new String(b, StandardCharsets.UTF_8);
-            System.out.println(result);
+            br.readLine();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

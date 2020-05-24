@@ -1,7 +1,5 @@
 package java_gold.ch8;
 
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
-
 import java.util.concurrent.*;
 
 public class ForkJoinStudy {
