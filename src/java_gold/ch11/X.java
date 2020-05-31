@@ -5,6 +5,7 @@ public interface X {
 }
 
 abstract class D implements X{
+    D() {} // 抽象クラスはコンストラクタ作れる
     // インターフェースの抽象クラスを抽象クラスでabstract宣言することができる。
     public abstract void doIt(String s);
 }
