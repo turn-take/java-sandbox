@@ -55,6 +55,7 @@ public class MyTable {
             }
         }
 
+        // 新規レコード
         Field[] record = new Field[columnNumber];
 
         // 型チェック
@@ -68,6 +69,8 @@ public class MyTable {
             Field field = new Field(newRecord.dataArray[i]);
             record[i] = field;
         }
+        // 現在のポインタの位置にレコードを追加する。
+        tableBody[pointer] = record;
         // ポインタを一つ上に移動させる
         pointer++;
     }
