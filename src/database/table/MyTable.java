@@ -1,7 +1,8 @@
 package database.table;
 
 import java.sql.SQLException;
-import java.util.function.Function;
+import java.util.Arrays;
+import java.util.function.Predicate;
 
 /**
  * テーブルクラス
@@ -34,23 +35,24 @@ public class MyTable {
      * レコードを追加する。
      */
     public void addRecord(NewRecord newRecord) throws SQLException {
+
+        int srcColumnNumber = newRecord.columnNumber;
+
         // カラム数チェック
-        if (newRecord.columnNumber > columnNumber) {
+        if (srcColumnNumber > columnNumber) {
             throw new SQLException(String.format("カラム数が多いです。 expected = %d < actual = %d", columnNumber, newRecord.columnNumber));
         }
-        if (newRecord.isColumnNameBased && newRecord.columnNumber != columnNumber) {
+        if (!newRecord.isColumnNameBased && srcColumnNumber != columnNumber) {
             throw new SQLException(String.format("カラム数が一致しません。 expected = %d but actual = %d", columnNumber, newRecord.columnNumber));
         }
 
-
         // カラム名チェック
         if (newRecord.isColumnNameBased) {
-            for (int i = 0; i < columnNumber; i++) {
-                if (!newRecord.columnNames[i].equals(tableStructure.columnNames[i])) {
-                    throw new SQLException(String.format("カラムインデックス：%dのカラム名が不正です。 expected = %s but actual = %s.",
-                            i,
-                            tableStructure.columnNames[i],
-                            newRecord.columnNames[i]));
+            for (int i = 0; i < srcColumnNumber; i++) {
+                String srcColumnName = newRecord.columnNames[i];
+                if (Arrays.stream(tableStructure.columnNames)
+                        .noneMatch(Predicate.isEqual(srcColumnName))) {
+                    throw new SQLException(String.format("%sというカラムは存在しません。", srcColumnName));
                 }
             }
         }
@@ -59,12 +61,26 @@ public class MyTable {
         Field[] record = new Field[columnNumber];
 
         // 型チェック
-        for (int i = 0; i < columnNumber; i++) {
-            if (!newRecord.dataArray[i].getDataType().equals(tableStructure.dataTypes[i])) {
-                throw new SQLException(String.format("カラムインデックス：%d型が不正です。 expected = %s but actual = %s.",
+        for (int i = 0; i < srcColumnNumber; i++) {
+            if (!newRecord.isColumnNameBased && !newRecord.dataArray[i].getDataType().equals(tableStructure.dataTypes[i])) {
+                throw new SQLException(String.format("カラムインデックス：%dの型が不正です。 expected = %s but actual = %s.",
                         i,
                         tableStructure.dataTypes[i],
                         newRecord.dataArray[i].getDataType()));
+            }
+
+            if (newRecord.isColumnNameBased) {
+                String srcColumnName = newRecord.columnNames[i];
+                for (int j = 0; j < columnNumber; j++) {
+                    if (tableStructure.columnNames[j].equals(srcColumnName)) {
+                        if (!tableStructure.dataTypes[j].equals(newRecord.dataArray[i].getDataType())) {
+                            throw new SQLException(String.format("カラムインデックス：%dの型が不正です。 expected = %s but actual = %s.",
+                                    i,
+                                    tableStructure.dataTypes[i],
+                                    newRecord.dataArray[i].getDataType()));
+                        }
+                    }
+                }
             }
             Field field = new Field(newRecord.dataArray[i]);
             record[i] = field;
@@ -113,23 +129,48 @@ public class MyTable {
      * このテーブルで扱う型の一覧
      */
     enum DataType {
+        DOUBLE,
         INTEGER,
         STRING,
         BOOLEAN;
     }
 
     // データ型インターフェース
-    interface Data{
+    static abstract class Data<T>{
+        T value;
+
+        @SuppressWarnings("unchecked") // ClassCastExceptionを明示的に発生させるので
+        Data(Object value) throws ClassCastException{
+            this.value = (T) value;
+        }
+
         // 型を取得する
-        DataType getDataType();
+        abstract DataType getDataType();
+
+        // 値を取得する
+        T getValue() {
+            return value;
+        };
     };
 
-    static class MyInteger implements Data {
+    static class MyDouble extends Data<Double> {
+        final DataType dataType = DataType.DOUBLE;
+
+        public MyDouble(Object value){
+            super(value);
+        }
+
+        @Override
+        DataType getDataType() {
+            return this.dataType;
+        }
+    }
+
+    static class MyInteger extends Data<Integer> {
         final DataType dataType = DataType.INTEGER;
-        int value;
 
-        public MyInteger(Object value) throws ClassCastException{
-            this.value = (Integer) value;
+        public MyInteger(Object value){
+            super(value);
         }
 
         @Override
@@ -138,12 +179,11 @@ public class MyTable {
         }
     }
 
-    static class MyString implements Data{
+    static class MyString extends Data<String> {
         final DataType dataType = DataType.STRING;
-        String value;
 
-        public MyString(Object value) throws ClassCastException{
-            this.value = (String) value;
+        public MyString(Object value) {
+            super(value);
         }
 
         @Override
@@ -152,12 +192,11 @@ public class MyTable {
         }
     }
 
-    static class MyBoolean implements Data{
+    static class MyBoolean extends Data<Boolean>{
         final DataType dataType = DataType.BOOLEAN;
-        boolean value;
 
-        public MyBoolean(Object value) throws ClassCastException{
-            this.value = (Boolean) value;
+        public MyBoolean(Object value) {
+            super(value);
         }
 
         @Override
@@ -171,9 +210,9 @@ public class MyTable {
      */
     static class Field {
         // このフィールドで扱うデータ
-        Data value;
+        Data<?> value;
 
-        public Field(Data value) {
+        public Field(Data<?> value) {
             this.value = value;
         }
     }
@@ -184,12 +223,12 @@ public class MyTable {
     static class NewRecord {
         int columnNumber;
         String[] columnNames;
-        Data[] dataArray;
+        Data<?>[] dataArray;
         //　カラム名を利用するかのフラグ
         final boolean isColumnNameBased;
 
         // データだけでレコードを作成する。
-        NewRecord(Data[] dataArray) {
+        NewRecord(Data<?>[] dataArray) {
             isColumnNameBased = false;
             this.columnNumber = dataArray.length;
             this.dataArray = dataArray;
@@ -200,7 +239,7 @@ public class MyTable {
             isColumnNameBased = true;
             this.columnNumber = columnDefines.length;
             columnNames = new String[columnNumber];
-            dataArray = new Data[columnNumber];
+            dataArray = new Data<?>[columnNumber];
 
             for (int i = 0; i < columnNumber; i++) {
                 columnNames[i] = columnDefines[i].columnName;
@@ -212,7 +251,7 @@ public class MyTable {
          * データとカラム名のひとまとまりクラス
          */
         static class DataAndColumnName {
-            Data data;
+            Data<?> data;
             String columnName;
         }
     }
