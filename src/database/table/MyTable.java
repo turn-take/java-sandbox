@@ -1,9 +1,11 @@
 package database.table;
 
+import java.io.Serializable;
 import java.sql.SQLException;
 
 /**
  * テーブルクラス
+ * 型付きの二次元の表を提供する。
  */
 public class MyTable {
 
@@ -31,13 +33,14 @@ public class MyTable {
 
     /**
      * レコードを追加する。
+     * @param newRecord 新規レコード
      */
     public void addRecord(NewRecord newRecord) throws SQLException {
         int newRecordColumnNumber = newRecord.columnNumber;
 
         // カラム数チェック
         if (newRecordColumnNumber != columnNumber) {
-            throw new SQLException(String.format("カラム数が一致しません。 expected = %d but actual = %d", columnNumber, newRecordColumnNumber));
+            throw new SQLException(String.format("カラム数が一致しません。 expected = %d but actual = %d.", columnNumber, newRecordColumnNumber));
         }
 
         // 新規レコード
@@ -96,6 +99,11 @@ public class MyTable {
     public static class ColumnDefine {
         String columnName;
         DataType dataType;
+
+        public ColumnDefine(String columnName, DataType dataType) {
+            this.columnName = columnName;
+            this.dataType = dataType;
+        }
     }
 
     /**
@@ -121,35 +129,52 @@ public class MyTable {
     interface ObjectToDataFunction {
         /**
          * Object型からデータクラスを取得する。
-         * @param object
-         * @return
+         * @param object 基となるオブジェクト
+         * @return データクラス
          * @throws ClassCastException データクラス生成時に型変換ができなかった場合
          */
         Data<?> apply(Object object) throws ClassCastException;
     }
 
-    // データ型インターフェース
-    public static abstract class Data<T>{
-        T value;
+    /**
+     * データの抽象クラス
+     * @param <T> このデータクラスが扱う何らかの型
+     */
+    public static abstract class Data<T extends Serializable>{
+        final T value;
 
-        @SuppressWarnings("unchecked") // ClassCastExceptionを明示的に発生させるので
         Data(Object value) throws ClassCastException{
-            this.value = (T) value;
+            this.value = as(value);
         }
 
-        // 型を取得する
+        /**
+         * 型を取得する
+          */
         abstract DataType getDataType();
 
-        // 値を取得する
-        T getValue() {
+        /**
+         * 値を取得する。
+         * @return 値
+         */
+        public T getValue() {
             return value;
         };
+
+        /**
+         * 型変換用のメソッド
+         * 継承先で実装される。
+         */
+        abstract T as(Object o) throws ClassCastException;
+
     }
 
+    /**
+     * Double型を扱うデータクラス
+     */
     public static class MyDouble extends Data<Double> {
         final DataType dataType = DataType.DOUBLE;
 
-        public MyDouble(Object value){
+        public MyDouble(Object value) throws ClassCastException{
             super(value);
         }
 
@@ -157,12 +182,20 @@ public class MyTable {
         DataType getDataType() {
             return this.dataType;
         }
+
+        @Override
+        Double as(Object o) {
+            return (Double) o;
+        }
     }
 
+    /**
+     * Integer型を扱うデータクラス
+     */
     public static class MyInteger extends Data<Integer> {
         final DataType dataType = DataType.INTEGER;
 
-        public MyInteger(Object value){
+        public MyInteger(Object value) throws ClassCastException{
             super(value);
         }
 
@@ -170,31 +203,52 @@ public class MyTable {
         public DataType getDataType() {
             return this.dataType;
         }
+
+        @Override
+        Integer as(Object o) {
+            return (Integer) o;
+        }
     }
 
+    /**
+     * String型を扱うデータクラス
+     */
     public static class MyString extends Data<String> {
         final DataType dataType = DataType.STRING;
 
-        public MyString(Object value) {
+        public MyString(Object value) throws ClassCastException{
             super(value);
         }
 
         @Override
         public DataType getDataType() {
             return this.dataType;
+        }
+
+        @Override
+        String as(Object o) {
+            return (String) o;
         }
     }
 
+    /**
+     * Boolean型を扱うデータクラス
+     */
     public static class MyBoolean extends Data<Boolean>{
         final DataType dataType = DataType.BOOLEAN;
 
-        public MyBoolean(Object value) {
+        public MyBoolean(Object value) throws ClassCastException{
             super(value);
         }
 
         @Override
         public DataType getDataType() {
             return this.dataType;
+        }
+
+        @Override
+        Boolean as(Object o) {
+            return (Boolean)o;
         }
     }
 
